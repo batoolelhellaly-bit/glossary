@@ -20,12 +20,6 @@
   </style>
 </head>
   <script type="module">
-    await addDoc(collection(db, "auditLogs"), {
-  action: "CREATE",
-  term: term,
-  user: auth.currentUser.email,
-  timestamp: serverTimestamp()
-});
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
