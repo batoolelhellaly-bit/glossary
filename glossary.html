@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Glossary</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4f6f8; margin:0; padding:40px; }
+    .container { max-width: 1000px; margin:auto; background:#fff; padding:30px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.1); }
+    h1 { text-align:center; }
+    .hidden { display:none; }
+    input, textarea, button, select { width:100%; padding:10px; margin-top:10px; }
+    button { background:#007bff; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+    button.danger { background:#dc3545; }
+    button.secondary { background:#6c757d; }
+    .toolbar { display:flex; gap:10px; margin-bottom:20px; }
+    .term { border-bottom:1px solid #ddd; padding:15px 0; }
+    .term h3 { margin:0; }
+    .actions { margin-top:10px; display:flex; gap:10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Glossary</h1>
+
+    <!-- Login -->
+    <div id="loginBox">
+      <h3>Admin Login</h3>
+      <input type="password" id="password" placeholder="Enter admin password" />
+      <button onclick="login()">Login</button>
+    </div>
+
+    <!-- Admin Area -->
+    <div id="adminArea" class="hidden">
+      <button class="secondary" onclick="logout()">Logout</button>
+      <form id="glossaryForm">
+        <h3>Add / Edit Term</h3>
+        <input type="hidden" id="editIndex" />
+        <input id="term" placeholder="Term" required />
+        <textarea id="definition" placeholder="Definition" required></textarea>
+        <button type="submit">Save</button>
+      </form>
+    </div>
+
+    <!-- Tools -->
+    <div class="toolbar">
+      <input id="search" placeholder="Search terms..." oninput="render()" />
+      <select id="sort" onchange="render()">
+        <option value="az">A–Z</option>
+        <option value="za">Z–A</option>
+      </select>
+    </div>
+
+    <!-- Glossary -->
+    <div id="glossaryList"></div>
+  </div>
+
+<script>
+const ADMIN_PASSWORD = "admin123"; // change this
+let glossary = JSON.parse(localStorage.getItem('glossary')) || [];
+let isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+const adminArea = document.getElementById('adminArea');
+const loginBox = document.getElementById('loginBox');
+const glossaryList = document.getElementById('glossaryList');
+
+function login() {
+  if (document.getElementById('password').value === ADMIN_PASSWORD) {
+    isAdmin = true;
+    localStorage.setItem('isAdmin', 'true');
+    updateUI();
+  } else alert('Wrong password');
+}
+
+function logout() {
+  isAdmin = false;
+  localStorage.removeItem('isAdmin');
+  updateUI();
+}
+
+function updateUI() {
+  adminArea.classList.toggle('hidden', !isAdmin);
+  loginBox.classList.toggle('hidden', isAdmin);
+  render();
+}
+
+// Add / Edit
+const form = document.getElementById('glossaryForm');
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  const index = document.getElementById('editIndex').value;
+  const term = document.getElementById('term').value.trim();
+  const definition = document.getElementById('definition').value.trim();
+
+  if (index === '') glossary.push({ term, definition });
+  else glossary[index] = { term, definition };
+
+  localStorage.setItem('glossary', JSON.stringify(glossary));
+  form.reset();
+  document.getElementById('editIndex').value = '';
+  render();
+});
+
+function render() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const sort = document.getElementById('sort').value;
+  let data = glossary.filter(g => g.term.toLowerCase().includes(search));
+
+  data.sort((a,b) => sort === 'az' ? a.term.localeCompare(b.term) : b.term.localeCompare(a.term));
+
+  glossaryList.innerHTML = '';
+  data.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'term';
+    div.innerHTML = `<h3>${item.term}</h3><p>${item.definition}</p>`;
+
+    if (isAdmin) {
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+      actions.innerHTML = `
+        <button onclick="editTerm(${i})">Edit</button>
+        <button class="danger" onclick="deleteTerm(${i})">Delete</button>`;
+      div.appendChild(actions);
+    }
+    glossaryList.appendChild(div);
+  });
+}
+
+function editTerm(i) {
+  document.getElementById('editIndex').value = i;
+  document.getElementById('term').value = glossary[i].term;
+  document.getElementById('definition').value = glossary[i].definition;
+}
+
+function deleteTerm(i) {
+  if (confirm('Delete this term?')) {
+    glossary.splice(i,1);
+    localStorage.setItem('glossary', JSON.stringify(glossary));
+    render();
+  }
+}
+
+updateUI();
+</script>
+</body>
+</html>
