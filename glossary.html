@@ -154,15 +154,12 @@ function deleteTerm(i) {
     render();
   }
 }
-await addDoc(collection(db, "auditLogs"), {
-  action: "CREATE",
-  term: term,
-  user: auth.currentUser.email,
-  timestamp: serverTimestamp()
+
 updateUI();
 </script>
 </body>
 </html>
+
 
 
 
